@@ -29,7 +29,7 @@ public class WebsiteProcessor {
         processQueue();
     }
 
-    public void processQueue() {
+    private void processQueue() {
         Connection connection = null;
         Channel channel = null;
 
@@ -55,7 +55,7 @@ public class WebsiteProcessor {
         }
     }
 
-    public void cacheWebsite(String url) {
+    private void cacheWebsite(String url) {
         try {
             URL website = new URL(url);
             URLConnection websiteConnection = website.openConnection();
@@ -71,7 +71,7 @@ public class WebsiteProcessor {
             content = sb.toString();
             in.close();
 
-            storage.saveCachedWebsite(content);
+            storage.saveCachedWebsite(url, content);
 
         } catch (IOException e) {
             logger.error(e.getMessage());
