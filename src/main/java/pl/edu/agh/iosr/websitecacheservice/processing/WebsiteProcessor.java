@@ -4,6 +4,7 @@ import com.rabbitmq.client.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.iosr.websitecacheservice.integration.Storage;
 
@@ -18,7 +19,9 @@ import java.util.concurrent.TimeoutException;
 @Component
 public class WebsiteProcessor {
     private static final Logger logger = LoggerFactory.getLogger(WebsiteProcessor.class);
-    private static final String QUEUE_NAME = "cache_notify";
+
+    @Value("${queue.name}")
+    private String queueName;
     private final ConnectionFactory connectionFactory;
     private final Storage storage;
 
@@ -37,7 +40,7 @@ public class WebsiteProcessor {
             connection = connectionFactory.newConnection();
             channel = connection.createChannel();
 
-            channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+            channel.queueDeclare(queueName, false, false, false, null);
             logger.debug("Waiting for messages...");
 
             Consumer consumer = new DefaultConsumer(channel) {
@@ -49,7 +52,7 @@ public class WebsiteProcessor {
                     cacheWebsite(message);
                 }
             };
-            channel.basicConsume(QUEUE_NAME, true, consumer);
+            channel.basicConsume(queueName, true, consumer);
         } catch (IOException | TimeoutException e) {
             logger.error(e.getMessage());
         }
