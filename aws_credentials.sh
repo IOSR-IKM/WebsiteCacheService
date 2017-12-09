@@ -4,7 +4,7 @@ mkdir -p ~/.aws
 
 cat > ~/.aws/config << EOL
 [default]
-region=us-east-2
+region=eu-central-1
 output=json
 EOL
 
