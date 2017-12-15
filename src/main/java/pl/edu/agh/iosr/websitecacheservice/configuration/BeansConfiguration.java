@@ -1,5 +1,6 @@
 package pl.edu.agh.iosr.websitecacheservice.configuration;
 
+import com.amazonaws.annotation.Beta;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -7,6 +8,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import pl.edu.agh.iosr.websitecacheservice.processing.WebsiteProcessor;
 
 @Configuration
 public class BeansConfiguration {

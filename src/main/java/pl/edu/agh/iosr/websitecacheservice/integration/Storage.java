@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import pl.edu.agh.iosr.websitecacheservice.processing.WebsiteProcessor;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -19,7 +18,7 @@ public class Storage {
     public static final String BUCKET_NAME = "gonzo251.iosr";
 
     private static final String TMP_PATH = "tmp.html";
-    private static final Logger logger = LoggerFactory.getLogger(WebsiteProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(Storage.class);
 
     private final AmazonS3 s3client;
 
