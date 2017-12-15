@@ -12,54 +12,53 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
 
 @Component
 public class WebsiteProcessor {
     private static final Logger logger = LoggerFactory.getLogger(WebsiteProcessor.class);
 
-    @Value("${queue.name}")
     private String queueName;
     private final ConnectionFactory connectionFactory;
     private final Storage storage;
 
-    public WebsiteProcessor(ConnectionFactory connectionFactory, Storage storage) {
+    public WebsiteProcessor(ConnectionFactory connectionFactory, Storage storage,  @Value("${queue.name}") String queueName) {
         this.connectionFactory = connectionFactory;
         this.storage = storage;
+        this.queueName = queueName;
 
         processQueue();
     }
 
-    private void processQueue() {
-        Channel channel = null;
-        try (Connection connection = connectionFactory.newConnection()) {
-            channel = connection.createChannel();
+    public void processQueue() {
+        logger.debug("Start processing...");
+        try {
+            Connection connection = connectionFactory.newConnection();
+            Channel channel = connection.createChannel();
             channel.queueDeclare(queueName, false, false, false, null);
             logger.debug("Waiting for messages...");
 
-            Consumer consumer = new DefaultConsumer(channel) {
+            final Consumer consumer = new DefaultConsumer(channel) {
                 @Override
                 public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
                         throws IOException {
                     String message = new String(body, "UTF-8");
                     logger.debug(" [x] Received '" + message + "'");
-                    cacheWebsite(message);
+                    String [] unpacked = message.split(",", 2);
+                    cacheWebsite(unpacked[0], unpacked[1]);
                 }
             };
             channel.basicConsume(queueName, true, consumer);
-        } catch (IOException | TimeoutException | NullPointerException e) {
+        } catch (IOException | NullPointerException | TimeoutException e) {
             logger.error(e.getMessage());
-        } finally {
-            try {
-                if(channel != null && channel.isOpen())
-                    channel.close();
-            } catch (IOException | TimeoutException e) {
-                logger.error("Failed to close channel!");
-            }
+            e.printStackTrace();
         }
     }
 
-    private void cacheWebsite(String url) {
+    private void cacheWebsite(String id, String url) {
         try {
             URL website = new URL(url);
             URLConnection websiteConnection = website.openConnection();
@@ -75,7 +74,7 @@ public class WebsiteProcessor {
             content = sb.toString();
             in.close();
 
-            storage.saveCachedWebsite(url, content);
+            storage.saveCachedWebsite(id, content);
 
         } catch (IOException e) {
             logger.error(e.getMessage());
