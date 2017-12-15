@@ -1,7 +1,6 @@
 package pl.edu.agh.iosr.websitecacheservice.processing;
 
 import com.rabbitmq.client.*;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +10,6 @@ import pl.edu.agh.iosr.websitecacheservice.integration.Storage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.concurrent.TimeoutException;
@@ -33,13 +31,9 @@ public class WebsiteProcessor {
     }
 
     private void processQueue() {
-        Connection connection = null;
         Channel channel = null;
-
-        try {
-            connection = connectionFactory.newConnection();
+        try (Connection connection = connectionFactory.newConnection()) {
             channel = connection.createChannel();
-
             channel.queueDeclare(queueName, false, false, false, null);
             logger.debug("Waiting for messages...");
 
@@ -53,8 +47,15 @@ public class WebsiteProcessor {
                 }
             };
             channel.basicConsume(queueName, true, consumer);
-        } catch (IOException | TimeoutException e) {
+        } catch (IOException | TimeoutException | NullPointerException e) {
             logger.error(e.getMessage());
+        } finally {
+            try {
+                if(channel != null && channel.isOpen())
+                    channel.close();
+            } catch (IOException | TimeoutException e) {
+                logger.error("Failed to close channel!");
+            }
         }
     }
 

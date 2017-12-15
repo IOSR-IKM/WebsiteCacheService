@@ -2,12 +2,7 @@ package pl.edu.agh.iosr.websitecacheservice.integration;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +26,7 @@ public class Storage {
     public void saveCachedWebsite(String id, String content) {
         try {
             File file = createFile(content);
-            if(!s3client.doesBucketExist(BUCKET_NAME)) {
+            if (!s3client.doesBucketExist(BUCKET_NAME)) {
                 s3client.createBucket(BUCKET_NAME);
             }
             s3client.putObject(BUCKET_NAME, id, file);
@@ -57,7 +52,7 @@ public class Storage {
     }
 
     public String getCachedWebsite(String id) {
-        if(s3client.doesObjectExist(BUCKET_NAME, id))
+        if (s3client.doesObjectExist(BUCKET_NAME, id))
             return s3client.getObjectAsString(BUCKET_NAME, id);
         else
             return null;
@@ -65,8 +60,7 @@ public class Storage {
 
     private File createFile(String content) {
         File file = new File(TMP_PATH);
-        try {
-            FileWriter fw = new FileWriter(file);
+        try (FileWriter fw = new FileWriter(file)) {
             fw.write(content);
             fw.close();
         } catch (IOException e) {
@@ -76,6 +70,8 @@ public class Storage {
     }
 
     private void cleanFile(File file) {
-        file.delete();
+        if (!file.delete()) {
+            logger.error("Cannot delete file: " + file.getName());
+        }
     }
 }

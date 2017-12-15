@@ -44,7 +44,7 @@ public class UrlControllerTest {
 
         //THEN
         assertTrue(res.getBody().equals(GOOD_ID));
-        assertEquals(res.getStatusCode(), HttpStatus.OK);
+        assertEquals(HttpStatus.OK, res.getStatusCode());
     }
 
     @Test
@@ -56,6 +56,6 @@ public class UrlControllerTest {
 
         //THEN
         assertNull(res.getBody());
-        assertEquals(res.getStatusCode(), HttpStatus.NOT_FOUND);
+        assertEquals(HttpStatus.NOT_FOUND, res.getStatusCode());
     }
 }

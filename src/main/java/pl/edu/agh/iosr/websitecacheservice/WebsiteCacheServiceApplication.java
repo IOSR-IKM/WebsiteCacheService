@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class WebsiteCacheServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(WebsiteCacheServiceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(WebsiteCacheServiceApplication.class, args);
+    }
 }

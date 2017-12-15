@@ -17,7 +17,7 @@ public class UrlController {
     @GetMapping("/{shortcut}")
     public ResponseEntity<String> getCachedWebsite(@PathVariable String shortcut) {
         String response = storage.getCachedWebsite(shortcut);
-        if(response == null) {
+        if (response == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
             return new ResponseEntity<>(response, HttpStatus.OK);
