@@ -13,6 +13,8 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
 
 @Component
@@ -32,10 +34,10 @@ public class WebsiteProcessor {
     }
 
     public void processQueue() {
-        Channel channel = null;
         logger.debug("Start processing...");
-        try (Connection connection = connectionFactory.newConnection()) {
-            channel = connection.createChannel();
+        try {
+            Connection connection = connectionFactory.newConnection();
+            Channel channel = connection.createChannel();
             channel.queueDeclare(queueName, false, false, false, null);
             logger.debug("Waiting for messages...");
 
@@ -50,17 +52,9 @@ public class WebsiteProcessor {
                 }
             };
             channel.basicConsume(queueName, true, consumer);
-        } catch (IOException | TimeoutException | NullPointerException e) {
+        } catch (IOException | NullPointerException | TimeoutException e) {
             logger.error(e.getMessage());
             e.printStackTrace();
-        } finally {
-            logger.debug("Processing finished");
-            try {
-                if(channel != null && channel.isOpen())
-                    channel.close();
-            } catch (IOException | TimeoutException e) {
-                logger.error("Failed to close channel!");
-            }
         }
     }
 
@@ -80,7 +74,7 @@ public class WebsiteProcessor {
             content = sb.toString();
             in.close();
 
-            storage.saveCachedWebsite(url, content);
+            storage.saveCachedWebsite(id, content);
 
         } catch (IOException e) {
             logger.error(e.getMessage());
