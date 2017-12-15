@@ -16,7 +16,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class Storage {
-    public static final String BUCKET_NAME = "iosr";
+    public static final String BUCKET_NAME = "gonzo251.iosr";
 
     private static final String TMP_PATH = "tmp.html";
     private static final Logger logger = LoggerFactory.getLogger(WebsiteProcessor.class);
