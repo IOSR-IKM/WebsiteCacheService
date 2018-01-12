@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import pl.edu.agh.iosr.websitecacheservice.integration.Storage;
 
-@RestController
+@RestController("/wcs")
 @RequiredArgsConstructor
 public class UrlController {
 
