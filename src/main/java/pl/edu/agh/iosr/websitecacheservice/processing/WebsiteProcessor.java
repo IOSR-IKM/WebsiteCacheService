@@ -12,9 +12,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 @Component
@@ -24,12 +22,14 @@ public class WebsiteProcessor {
     private String queueName;
     private final ConnectionFactory connectionFactory;
     private final Storage storage;
+    private Map<String, String> cache;
 
     public WebsiteProcessor(ConnectionFactory connectionFactory, Storage storage,  @Value("${queue.name}") String queueName) {
         this.connectionFactory = connectionFactory;
         this.storage = storage;
         this.queueName = queueName;
 
+        this.cache = new HashMap<>();
         processQueue();
     }
 
@@ -39,16 +39,29 @@ public class WebsiteProcessor {
             Connection connection = connectionFactory.newConnection();
             Channel channel = connection.createChannel();
             channel.queueDeclare(queueName, false, false, false, null);
-            logger.debug("Waiting for messages...");
+            logger.error("Waiting for messages...");
 
             final Consumer consumer = new DefaultConsumer(channel) {
                 @Override
                 public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
                         throws IOException {
                     String message = new String(body, "UTF-8");
-                    logger.debug(" [x] Received '" + message + "'");
+                    logger.error(" [x] Received '" + message + "'");
                     String [] unpacked = message.split(",", 2);
+                    if(unpacked == null || unpacked.length < 2)
+                    {
+                        logger.error(" [x] Probably malformed message");
+                        return;
+                    }
                     cacheWebsite(unpacked[0], unpacked[1]);
+
+                    if(!cache.isEmpty())
+                    {
+                        for(String id : cache.keySet())
+                        {
+                            cacheWebsite(id, cache.get(id));
+                        }
+                    }
                 }
             };
             channel.basicConsume(queueName, true, consumer);
@@ -60,6 +73,7 @@ public class WebsiteProcessor {
 
     private void cacheWebsite(String id, String url) {
         try {
+            logger.error(" [X] Caching website...: id: " + id + ", url: " + url);
             URL website = new URL(url);
             URLConnection websiteConnection = website.openConnection();
             BufferedReader in = new BufferedReader(new InputStreamReader(
@@ -73,11 +87,12 @@ public class WebsiteProcessor {
                 sb.append(tmp);
             content = sb.toString();
             in.close();
-
+            logger.error(" [X] Website cached");
             storage.saveCachedWebsite(id, content);
 
         } catch (IOException e) {
             logger.error(e.getMessage());
+            cache.put(id, url);
         }
     }
 }
